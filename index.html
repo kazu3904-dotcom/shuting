@@ -300,6 +300,11 @@
       font-size: 28px;
     }
 
+    .dialog.success {
+      border-color: rgba(255, 207, 90, .55);
+      box-shadow: 0 0 0 1px rgba(255, 207, 90, .18), 0 18px 60px rgba(0, 0, 0, .36);
+    }
+
     .dialog p {
       margin: 0 0 16px;
       color: var(--muted);
@@ -310,7 +315,7 @@
       .app {
         min-height: 100svh;
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(320px, 45svh) auto;
+        grid-template-rows: minmax(300px, 42svh) auto;
       }
 
       .stage-wrap {
@@ -347,7 +352,7 @@
       }
 
       .mode-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .mode-grid .mode-button:last-child:nth-child(odd) {
@@ -359,7 +364,14 @@
       }
 
       .mode-button {
-        min-height: 38px;
+        min-height: 44px;
+      }
+
+      .answer-box {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        box-shadow: 0 -12px 26px rgba(16, 20, 28, .58);
       }
 
       .display {
@@ -394,6 +406,47 @@
 
       .speed-grid {
         grid-template-columns: 1fr;
+      }
+
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        grid-template-rows: minmax(280px, 38svh) auto;
+      }
+
+      .stage-wrap {
+        padding: 8px;
+      }
+
+      .hud {
+        top: 16px;
+        left: 16px;
+        right: 16px;
+      }
+
+      .hud-label {
+        font-size: 11px;
+      }
+
+      .hud-value {
+        font-size: 17px;
+      }
+
+      .mode-button,
+      .speed-button,
+      .small-button {
+        min-height: 46px;
+      }
+
+      .keys {
+        gap: 6px;
+      }
+
+      .key {
+        min-height: 48px;
+        font-size: 20px;
       }
     }
   </style>
@@ -537,6 +590,8 @@
       running: false,
       paused: false,
       gameOver: false,
+      milestones: [],
+      milestoneOpen: false,
       lastTime: 0,
       sound: true,
       spawnDelay: 0,
@@ -737,10 +792,13 @@
       state.running = true;
       state.paused = false;
       state.gameOver = false;
+      state.milestones = [];
+      state.milestoneOpen = false;
       state.spawnDelay = 0;
       state.shake = 0;
       state.timeLeft = state.mode === "timeAttack" ? 60 : null;
       overlay.hidden = true;
+      document.querySelector(".dialog").classList.remove("success");
       pauseButton.textContent = "一時停止";
       statusEl.textContent = "敵機の式を見て、答えを入力してください。";
       messageEl.innerHTML = "発射準備OK。";
@@ -805,13 +863,17 @@
     function resolveShot(correct) {
       if (!state.enemy) return;
       if (correct) {
+        const answerText = state.enemy.answer;
         state.score += 10 + state.streak * 2;
         state.streak += 1;
         explodeEnemy(false);
-        statusEl.textContent = "正解。次の敵機が来ます。";
-        messageEl.innerHTML = `<strong>命中!</strong> 答えは ${state.enemy.answer}。`;
         audio.tone(320, 0.09, "triangle", 0.06);
         setTimeout(() => audio.tone(520, 0.12, "triangle", 0.04), 70);
+        if (checkMilestones()) {
+          return;
+        }
+        statusEl.textContent = "正解。次の敵機が来ます。";
+        messageEl.innerHTML = `<strong>命中!</strong> 答えは ${answerText}。`;
       } else {
         state.enemy.wrong += 1;
         state.streak = 0;
@@ -852,12 +914,84 @@
     function endGame(reason) {
       state.gameOver = true;
       state.running = false;
+      state.timeLeft = null;
+      state.milestoneOpen = false;
+      document.querySelector(".dialog").classList.remove("success");
       overlayTitle.textContent = "ゲームオーバー";
       overlayText.textContent = `${reason} スコアは ${state.score} 点です。`;
       startButton.textContent = "もう一度";
       overlay.hidden = false;
       pauseButton.textContent = "一時停止";
       audio.tone(90, 0.42, "sawtooth", 0.05);
+    }
+
+    function checkMilestones() {
+      if (state.score >= 500 && !state.milestones.includes(500)) {
+        state.milestones.push(500);
+        finishGame();
+        return true;
+      }
+
+      if (state.score >= 300 && !state.milestones.includes(300)) {
+        state.milestones.push(300);
+        showMilestone("すごい!", `300点たっせい。スコアは ${state.score} 点です。このまま500点をめざそう。`);
+        return false;
+      }
+
+      if (state.score >= 100 && !state.milestones.includes(100)) {
+        state.milestones.push(100);
+        showMilestone("おめでとう!", `100点たっせい。スコアは ${state.score} 点です。つぎは300点をめざそう。`);
+        return false;
+      }
+
+      return false;
+    }
+
+    function showMilestone(title, text) {
+      state.paused = true;
+      state.milestoneOpen = true;
+      document.querySelector(".dialog").classList.add("success");
+      overlayTitle.textContent = title;
+      overlayText.textContent = text;
+      startButton.textContent = "つづける";
+      overlay.hidden = false;
+      statusEl.textContent = text;
+      messageEl.innerHTML = `<strong>${title}</strong> ${text}`;
+      audio.tone(440, 0.12, "triangle", 0.055);
+      setTimeout(() => audio.tone(660, 0.14, "triangle", 0.045), 100);
+      setTimeout(() => audio.tone(880, 0.18, "triangle", 0.035), 220);
+      updateHud();
+    }
+
+    function continueAfterMilestone() {
+      state.paused = false;
+      state.milestoneOpen = false;
+      overlay.hidden = true;
+      document.querySelector(".dialog").classList.remove("success");
+      pauseButton.textContent = "一時停止";
+      statusEl.textContent = "ゲーム再開。次の敵機にそなえよう。";
+      state.lastTime = performance.now();
+    }
+
+    function finishGame() {
+      state.gameOver = true;
+      state.running = false;
+      state.timeLeft = null;
+      state.milestoneOpen = false;
+      state.enemy = null;
+      state.missiles = [];
+      document.querySelector(".dialog").classList.add("success");
+      overlayTitle.textContent = "よくがんばりました";
+      overlayText.textContent = `500点たっせい。スコアは ${state.score} 点でした。`;
+      startButton.textContent = "もう一度";
+      overlay.hidden = false;
+      pauseButton.textContent = "一時停止";
+      statusEl.textContent = "500点たっせい。よくがんばりました。";
+      messageEl.innerHTML = "<strong>クリア!</strong> 500点をたっせいしました。";
+      audio.tone(440, 0.12, "triangle", 0.055);
+      setTimeout(() => audio.tone(660, 0.16, "triangle", 0.05), 110);
+      setTimeout(() => audio.tone(880, 0.22, "triangle", 0.04), 250);
+      updateHud();
     }
 
     function update(delta) {
@@ -1108,7 +1242,13 @@
     });
 
     fireButton.addEventListener("click", fire);
-    startButton.addEventListener("click", resetGame);
+    startButton.addEventListener("click", () => {
+      if (state.milestoneOpen && state.running && !state.gameOver) {
+        continueAfterMilestone();
+        return;
+      }
+      resetGame();
+    });
     restartButton.addEventListener("click", resetGame);
     pauseButton.addEventListener("click", () => {
       if (!state.running || state.gameOver) return;
