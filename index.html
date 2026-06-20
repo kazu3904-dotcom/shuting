@@ -420,20 +420,23 @@
       }
 
       .speed-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .app {
-        grid-template-rows: minmax(220px, 34svh) minmax(0, 1fr);
+        height: 100dvh;
+        min-height: 100dvh;
+        grid-template-rows: 26dvh minmax(0, 1fr);
       }
 
       .stage-wrap {
-        padding: 8px;
+        padding: 6px;
       }
 
       .side {
         grid-template-columns: 1fr;
-        gap: 6px;
+        grid-template-rows: auto auto auto minmax(0, 1fr);
+        gap: 5px;
         padding: 6px;
       }
 
@@ -456,6 +459,29 @@
 
       .side > .panel:nth-of-type(4) {
         display: none;
+      }
+
+      .actions {
+        display: none;
+      }
+
+      .panel {
+        padding: 6px;
+      }
+
+      .panel-title {
+        margin-bottom: 4px;
+        font-size: 11px;
+      }
+
+      .select-control {
+        min-height: 34px;
+        font-size: 14px;
+      }
+
+      .speed-button {
+        min-height: 34px;
+        font-size: 14px;
       }
 
       .hud {
@@ -482,17 +508,40 @@
       }
 
       .key {
-        min-height: 42px;
-        font-size: 20px;
+        min-height: 34px;
+        font-size: 18px;
       }
 
       .display {
-        min-height: 40px;
-        font-size: 26px;
+        min-height: 34px;
+        font-size: 22px;
       }
 
       .fire-button {
-        min-height: 46px;
+        min-height: 40px;
+        font-size: 18px;
+      }
+
+      .answer-box {
+        gap: 5px;
+      }
+
+      .answer-box .panel-title {
+        display: none;
+      }
+
+      .dialog {
+        width: min(360px, calc(100vw - 28px));
+        padding: 12px;
+      }
+
+      .dialog h2 {
+        font-size: 24px;
+      }
+
+      .dialog p {
+        margin-bottom: 10px;
+        font-size: 14px;
       }
     }
   </style>
