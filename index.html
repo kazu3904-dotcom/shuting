@@ -427,9 +427,9 @@
       }
 
       .app {
-        height: 100dvh;
-        min-height: 100dvh;
-        grid-template-rows: 46dvh minmax(0, 1fr);
+        height: 100svh;
+        min-height: 100svh;
+        grid-template-rows: 43svh minmax(0, 1fr);
       }
 
       .stage-wrap {
@@ -517,8 +517,8 @@
       }
 
       .key {
-        min-height: 30px;
-        font-size: 17px;
+        min-height: 28px;
+        font-size: 16px;
       }
 
       .display {
@@ -527,12 +527,30 @@
       }
 
       .fire-button {
-        min-height: 34px;
+        min-height: 100%;
         font-size: 18px;
       }
 
       .answer-box {
+        grid-template-columns: minmax(0, 1fr) 74px;
+        grid-template-rows: auto minmax(0, 1fr);
         gap: 5px;
+      }
+
+      .answer-box .display {
+        grid-column: 1 / -1;
+      }
+
+      .answer-box .keys {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .answer-box .fire-button {
+        grid-column: 2;
+        grid-row: 2;
+        writing-mode: vertical-rl;
+        letter-spacing: 0;
       }
 
       .answer-box .panel-title {
