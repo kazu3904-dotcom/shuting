@@ -426,7 +426,7 @@
       .app {
         height: 100dvh;
         min-height: 100dvh;
-        grid-template-rows: 26dvh minmax(0, 1fr);
+        grid-template-rows: 42dvh minmax(0, 1fr);
       }
 
       .stage-wrap {
@@ -475,13 +475,13 @@
       }
 
       .select-control {
-        min-height: 34px;
+        min-height: 30px;
         font-size: 14px;
       }
 
       .speed-button {
-        min-height: 34px;
-        font-size: 14px;
+        min-height: 30px;
+        font-size: 13px;
       }
 
       .hud {
@@ -508,17 +508,17 @@
       }
 
       .key {
-        min-height: 34px;
-        font-size: 18px;
+        min-height: 30px;
+        font-size: 17px;
       }
 
       .display {
-        min-height: 34px;
-        font-size: 22px;
+        min-height: 30px;
+        font-size: 21px;
       }
 
       .fire-button {
-        min-height: 40px;
+        min-height: 34px;
         font-size: 18px;
       }
 
@@ -717,8 +717,9 @@
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
       const scale = window.devicePixelRatio || 1;
-      canvas.width = Math.max(640, Math.floor(rect.width * scale));
-      canvas.height = Math.max(420, Math.floor(rect.height * scale));
+      const narrow = window.matchMedia("(max-width: 520px)").matches;
+      canvas.width = Math.max(narrow ? 320 : 640, Math.floor(rect.width * scale));
+      canvas.height = Math.max(narrow ? 240 : 420, Math.floor(rect.height * scale));
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       seedStars();
     }
@@ -855,12 +856,13 @@
       const problem = makeProblem();
       const speedBase = 34 + Math.min(42, state.score * 1.9);
       const speed = speedBase * speedSettings[state.speed].multiplier;
+      const enemySize = Math.max(68, Math.min(108, height * 0.22));
       state.enemy = {
         ...problem,
         x: width * (0.24 + Math.random() * 0.52),
-        y: -80,
-        targetY: height - 138,
-        size: 108,
+        y: -enemySize * 0.75,
+        targetY: height - Math.max(98, enemySize * 1.35),
+        size: enemySize,
         speed,
         wrong: 0,
         exploding: false,
@@ -1123,7 +1125,8 @@
         const enemy = state.enemy;
         if (enemy.diving) {
           const rocketX = width / 2;
-          const rocketY = height - 74;
+          const rocketSize = Math.max(50, Math.min(76, height * 0.17));
+          const rocketY = height - Math.max(44, rocketSize * 0.95);
           const dx = rocketX - enemy.x;
           const dy = rocketY - enemy.y;
           const dist = Math.max(1, Math.hypot(dx, dy));
@@ -1230,19 +1233,23 @@
       ctx.lineTo(width * 0.92, height - 38);
       ctx.stroke();
 
-      drawShip(width / 2, height - 72, 76, false);
+      const rocketSize = Math.max(50, Math.min(76, height * 0.17));
+      const rocketY = height - Math.max(44, rocketSize * 0.95);
+      drawShip(width / 2, rocketY, rocketSize, false);
 
       if (state.enemy && !state.enemy.exploding) {
         const enemy = state.enemy;
         drawShip(enemy.x, enemy.y, enemy.size, true);
+        const labelWidth = Math.max(92, enemy.size * 1.15);
+        const labelHeight = Math.max(34, enemy.size * 0.38);
         ctx.fillStyle = "rgba(11, 14, 20, .82)";
         ctx.strokeStyle = enemy.wrong ? "#ff6666" : "rgba(255,255,255,.5)";
         ctx.lineWidth = 2;
-        roundRect(enemy.x - 62, enemy.y - 18, 124, 42, 7);
+        roundRect(enemy.x - labelWidth / 2, enemy.y - labelHeight / 2, labelWidth, labelHeight, 7);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = "#f8fbff";
-        ctx.font = "800 24px system-ui, sans-serif";
+        ctx.font = `800 ${Math.max(19, Math.min(24, enemy.size * 0.23))}px system-ui, sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(enemy.text, enemy.x, enemy.y + 3);
