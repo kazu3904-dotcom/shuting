@@ -28,7 +28,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -40,9 +40,9 @@
     }
 
     .app {
-      min-height: 100vh;
+      height: 100vh;
       display: grid;
-      grid-template-columns: minmax(320px, 1fr) 380px;
+      grid-template-columns: minmax(360px, 1fr) 340px;
       background:
         radial-gradient(circle at 30% 18%, rgba(32, 183, 168, .14), transparent 26rem),
         linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
@@ -50,10 +50,10 @@
 
     .stage-wrap {
       position: relative;
-      min-height: 100vh;
+      min-height: 0;
       display: grid;
       place-items: stretch;
-      padding: 18px;
+      padding: 10px;
     }
 
     canvas {
@@ -100,13 +100,15 @@
     }
 
     .side {
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 0;
       display: grid;
-      grid-template-rows: auto auto auto auto 1fr auto;
-      gap: 14px;
-      padding: 18px;
+      grid-template-rows: auto auto auto auto auto minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 10px;
       border-left: 1px solid rgba(244, 247, 251, .14);
       background: rgba(16, 20, 28, .82);
+      overflow: hidden;
     }
 
     .title {
@@ -118,7 +120,7 @@
 
     h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 20px;
       letter-spacing: 0;
     }
 
@@ -131,14 +133,26 @@
     .panel {
       border: 1px solid rgba(244, 247, 251, .14);
       background: var(--panel);
-      padding: 12px;
+      padding: 10px;
     }
 
     .panel-title {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
+    }
+
+    .select-control {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #111821;
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 15px;
+      font-weight: 800;
     }
 
     .mode-grid {
@@ -158,7 +172,6 @@
       font-weight: 800;
     }
 
-    .mode-button,
     .speed-button,
     .small-button,
     .key,
@@ -172,7 +185,6 @@
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
     }
 
-    .mode-button:hover,
     .speed-button:hover,
     .small-button:hover,
     .key:hover,
@@ -181,35 +193,30 @@
       border-color: rgba(244, 247, 251, .34);
     }
 
-    .mode-button.active,
     .speed-button.active {
       border-color: var(--accent);
       background: rgba(32, 183, 168, .2);
       box-shadow: inset 0 0 0 1px rgba(32, 183, 168, .28);
     }
 
-    .mode-grid .mode-button:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
-    }
-
     .speed-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .speed-button {
-      min-height: 40px;
+      min-height: 36px;
       font-weight: 800;
     }
 
     .answer-box {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .display {
-      min-height: 58px;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -217,7 +224,7 @@
       border: 1px solid var(--line);
       border-radius: 7px;
       background: #0d1219;
-      font-size: 34px;
+      font-size: 28px;
       font-weight: 800;
       line-height: 1;
       overflow: hidden;
@@ -230,12 +237,13 @@
     .keys {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .key {
-      aspect-ratio: 1.35 / 1;
-      font-size: 22px;
+      min-height: 42px;
+      aspect-ratio: auto;
+      font-size: 20px;
       font-weight: 800;
     }
 
@@ -244,7 +252,7 @@
     }
 
     .fire-button {
-      min-height: 54px;
+      min-height: 46px;
       border-color: rgba(255, 207, 90, .5);
       background: #5c4212;
       color: #fff3cd;
@@ -264,10 +272,11 @@
     }
 
     .message {
-      min-height: 48px;
+      min-height: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.45;
+      overflow: auto;
     }
 
     .message strong {
@@ -312,10 +321,15 @@
     }
 
     @media (max-width: 860px) {
+      body {
+        overflow: hidden;
+      }
+
       .app {
+        height: 100svh;
         min-height: 100svh;
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(300px, 42svh) auto;
+        grid-template-rows: minmax(260px, 45svh) minmax(0, 1fr);
       }
 
       .stage-wrap {
@@ -324,12 +338,26 @@
       }
 
       .side {
+        height: auto;
         min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, .95fr);
         border-left: 0;
         border-top: 1px solid rgba(244, 247, 251, .14);
-        grid-template-rows: auto;
-        gap: 10px;
-        padding: 12px;
+        gap: 8px;
+        padding: 8px;
+        overflow: hidden;
+      }
+
+      .title,
+      .status,
+      .actions {
+        grid-column: 1 / -1;
+      }
+
+      .answer-box {
+        grid-column: 2;
+        grid-row: 3 / span 3;
       }
 
       .hud {
@@ -351,27 +379,14 @@
         font-size: 21px;
       }
 
-      .mode-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .mode-grid .mode-button:last-child:nth-child(odd) {
-        grid-column: auto;
-      }
-
       .panel {
-        padding: 10px;
-      }
-
-      .mode-button {
-        min-height: 44px;
+        padding: 8px;
       }
 
       .answer-box {
-        position: sticky;
-        bottom: 0;
+        position: static;
         z-index: 3;
-        box-shadow: 0 -12px 26px rgba(16, 20, 28, .58);
+        box-shadow: none;
       }
 
       .display {
@@ -408,16 +423,39 @@
         grid-template-columns: 1fr;
       }
 
-      .mode-grid {
-        grid-template-columns: 1fr;
-      }
-
       .app {
-        grid-template-rows: minmax(280px, 38svh) auto;
+        grid-template-rows: minmax(220px, 34svh) minmax(0, 1fr);
       }
 
       .stage-wrap {
         padding: 8px;
+      }
+
+      .side {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 6px;
+      }
+
+      .title,
+      .status,
+      .actions,
+      .answer-box {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .title {
+        display: none;
+      }
+
+      .status {
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .side > .panel:nth-of-type(4) {
+        display: none;
       }
 
       .hud {
@@ -434,7 +472,6 @@
         font-size: 17px;
       }
 
-      .mode-button,
       .speed-button,
       .small-button {
         min-height: 46px;
@@ -445,8 +482,17 @@
       }
 
       .key {
-        min-height: 48px;
+        min-height: 42px;
         font-size: 20px;
+      }
+
+      .display {
+        min-height: 40px;
+        font-size: 26px;
+      }
+
+      .fire-button {
+        min-height: 46px;
       }
     }
   </style>
@@ -487,34 +533,27 @@
 
       <section class="panel" aria-labelledby="mode-title">
         <p class="panel-title" id="mode-title">出題モード</p>
-        <div class="mode-group">
-          <p class="group-title">低学年向け</p>
-          <div class="mode-grid">
-            <button class="mode-button active" data-mode="add10" type="button">たしざん1（10まで）</button>
-            <button class="mode-button" data-mode="addNoCarry" type="button">たしざん2（くり上がりなし）</button>
-            <button class="mode-button" data-mode="addCarry" type="button">たしざん3（くり上がりあり）</button>
-            <button class="mode-button" data-mode="sub10" type="button">ひきざん1（10まで）</button>
-            <button class="mode-button" data-mode="subNoBorrow" type="button">ひきざん2（くり下がりなし）</button>
-            <button class="mode-button" data-mode="subBorrow" type="button">ひきざん3（くり下がりあり）</button>
-          </div>
-        </div>
-        <div class="mode-group">
-          <p class="group-title">中学年向け</p>
-          <div class="mode-grid">
-            <button class="mode-button" data-mode="mul" type="button">かけざん</button>
-            <button class="mode-button" data-mode="div" type="button">わりざん</button>
-            <button class="mode-button" data-mode="nine" type="button">九九チャレンジ</button>
-            <button class="mode-button" data-mode="addSubMix" type="button">たしざん・ひきざんミックス</button>
-          </div>
-        </div>
-        <div class="mode-group">
-          <p class="group-title">上級向け</p>
-          <div class="mode-grid">
-            <button class="mode-button" data-mode="fourMix" type="button">四則計算ミックス</button>
-            <button class="mode-button" data-mode="random" type="button">ランダムモード</button>
-            <button class="mode-button" data-mode="timeAttack" type="button">タイムアタック</button>
-          </div>
-        </div>
+        <select class="select-control" id="modeSelect" aria-label="出題モード">
+          <optgroup label="低学年向け">
+            <option value="add10">たしざん1（10まで）</option>
+            <option value="addNoCarry">たしざん2（くり上がりなし）</option>
+            <option value="addCarry">たしざん3（くり上がりあり）</option>
+            <option value="sub10">ひきざん1（10まで）</option>
+            <option value="subNoBorrow">ひきざん2（くり下がりなし）</option>
+            <option value="subBorrow">ひきざん3（くり下がりあり）</option>
+          </optgroup>
+          <optgroup label="中学年向け">
+            <option value="mul">かけざん</option>
+            <option value="div">わりざん</option>
+            <option value="nine">九九チャレンジ</option>
+            <option value="addSubMix">たしざん・ひきざんミックス</option>
+          </optgroup>
+          <optgroup label="上級向け">
+            <option value="fourMix">四則計算ミックス</option>
+            <option value="random">ランダムモード</option>
+            <option value="timeAttack">タイムアタック</option>
+          </optgroup>
+        </select>
       </section>
 
       <section class="panel" aria-labelledby="speed-title">
@@ -576,6 +615,7 @@
     const restartButton = document.getElementById("restartButton");
     const soundButton = document.getElementById("soundButton");
     const fireButton = document.getElementById("fireButton");
+    const modeSelect = document.getElementById("modeSelect");
 
     const state = {
       mode: "add10",
@@ -1210,16 +1250,12 @@
       requestAnimationFrame(loop);
     }
 
-    document.querySelectorAll(".mode-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".mode-button").forEach((b) => b.classList.remove("active"));
-        button.classList.add("active");
-        state.mode = button.dataset.mode;
-        if (state.mode === "timeAttack" && state.running && state.timeLeft === null) state.timeLeft = 60;
-        if (state.mode !== "timeAttack" && state.timeLeft !== null) state.timeLeft = null;
-        updateHud();
-        statusEl.textContent = "モードを変更しました。次の敵機から反映されます。";
-      });
+    modeSelect.addEventListener("change", () => {
+      state.mode = modeSelect.value;
+      if (state.mode === "timeAttack" && state.running && state.timeLeft === null) state.timeLeft = 60;
+      if (state.mode !== "timeAttack" && state.timeLeft !== null) state.timeLeft = null;
+      updateHud();
+      statusEl.textContent = "モードを変更しました。次の敵機から反映されます。";
     });
 
     document.querySelectorAll("[data-key]").forEach((button) => {
