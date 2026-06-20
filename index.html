@@ -411,7 +411,10 @@
       }
 
       .hud {
+        position: static;
+        grid-row: 2;
         gap: 6px;
+        margin-top: 4px;
       }
 
       .hud-pill {
@@ -426,11 +429,17 @@
       .app {
         height: 100dvh;
         min-height: 100dvh;
-        grid-template-rows: 42dvh minmax(0, 1fr);
+        grid-template-rows: 46dvh minmax(0, 1fr);
       }
 
       .stage-wrap {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
         padding: 6px;
+      }
+
+      canvas {
+        min-height: 0;
       }
 
       .side {
@@ -485,9 +494,9 @@
       }
 
       .hud {
-        top: 16px;
-        left: 16px;
-        right: 16px;
+        top: auto;
+        left: auto;
+        right: auto;
       }
 
       .hud-label {
