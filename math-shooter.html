@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>さんすうシューティング</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10141c;
+      --panel: #18202b;
+      --panel-2: #202b38;
+      --line: #354456;
+      --text: #f4f7fb;
+      --muted: #aebacc;
+      --accent: #20b7a8;
+      --accent-2: #ffcf5a;
+      --danger: #ff6666;
+      --rocket: #e9eef6;
+      --sky-top: #11182a;
+      --sky-bottom: #27364b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 380px;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(32, 183, 168, .14), transparent 26rem),
+        linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+    }
+
+    .stage-wrap {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      place-items: stretch;
+      padding: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 1px solid rgba(244, 247, 251, .14);
+      background: transparent;
+    }
+
+    .hud {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      right: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .hud-pill {
+      min-width: 88px;
+      padding: 8px 12px;
+      border: 1px solid rgba(244, 247, 251, .18);
+      background: rgba(16, 20, 28, .64);
+      backdrop-filter: blur(8px);
+    }
+
+    .hud-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.1;
+    }
+
+    .hud-value {
+      display: block;
+      margin-top: 2px;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .side {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto auto auto 1fr auto;
+      gap: 14px;
+      padding: 18px;
+      border-left: 1px solid rgba(244, 247, 251, .14);
+      background: rgba(16, 20, 28, .82);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .panel {
+      border: 1px solid rgba(244, 247, 251, .14);
+      background: var(--panel);
+      padding: 12px;
+    }
+
+    .panel-title {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .mode-group + .mode-group {
+      margin-top: 12px;
+    }
+
+    .group-title {
+      margin: 0 0 8px;
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .mode-button,
+    .speed-button,
+    .small-button,
+    .key,
+    .fire-button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .mode-button:hover,
+    .speed-button:hover,
+    .small-button:hover,
+    .key:hover,
+    .fire-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(244, 247, 251, .34);
+    }
+
+    .mode-button.active,
+    .speed-button.active {
+      border-color: var(--accent);
+      background: rgba(32, 183, 168, .2);
+      box-shadow: inset 0 0 0 1px rgba(32, 183, 168, .28);
+    }
+
+    .mode-grid .mode-button:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+
+    .speed-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .speed-button {
+      min-height: 40px;
+      font-weight: 800;
+    }
+
+    .answer-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .display {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #0d1219;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      overflow: hidden;
+    }
+
+    .display.empty {
+      color: #526073;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .key {
+      aspect-ratio: 1.35 / 1;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .key.utility {
+      color: var(--accent-2);
+    }
+
+    .fire-button {
+      min-height: 54px;
+      border-color: rgba(255, 207, 90, .5);
+      background: #5c4212;
+      color: #fff3cd;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .small-button {
+      min-height: 38px;
+      color: var(--muted);
+    }
+
+    .message {
+      min-height: 48px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .message strong {
+      color: var(--text);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 18px;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 20, 28, .68);
+      backdrop-filter: blur(5px);
+    }
+
+    .overlay[hidden] {
+      display: none;
+    }
+
+    .dialog {
+      width: min(420px, calc(100vw - 48px));
+      border: 1px solid rgba(244, 247, 251, .18);
+      background: rgba(24, 32, 43, .96);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .dialog h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .dialog p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        min-height: 100svh;
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(320px, 45svh) auto;
+      }
+
+      .stage-wrap {
+        min-height: 0;
+        padding: 12px;
+      }
+
+      .side {
+        min-height: 0;
+        border-left: 0;
+        border-top: 1px solid rgba(244, 247, 251, .14);
+        grid-template-rows: auto;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .hud {
+        top: 22px;
+        left: 22px;
+        right: 22px;
+      }
+
+      .hud-pill {
+        min-width: 76px;
+        padding: 7px 9px;
+      }
+
+      .hud-value {
+        font-size: 19px;
+      }
+
+      h1 {
+        font-size: 21px;
+      }
+
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-grid .mode-button:last-child:nth-child(odd) {
+        grid-column: auto;
+      }
+
+      .panel {
+        padding: 10px;
+      }
+
+      .mode-button {
+        min-height: 38px;
+      }
+
+      .display {
+        min-height: 48px;
+        font-size: 28px;
+      }
+
+      .key {
+        min-height: 44px;
+        aspect-ratio: auto;
+      }
+
+      .fire-button {
+        min-height: 50px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .title {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .hud {
+        gap: 6px;
+      }
+
+      .hud-pill {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .speed-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="stage-wrap" aria-label="ゲーム画面">
+      <canvas id="game" width="1000" height="800"></canvas>
+      <div class="hud" aria-live="polite">
+        <div class="hud-pill">
+          <span class="hud-label">スコア</span>
+          <span class="hud-value" id="score">0</span>
+        </div>
+        <div class="hud-pill">
+          <span class="hud-label">れんぞく</span>
+          <span class="hud-value" id="streak">0</span>
+        </div>
+        <div class="hud-pill">
+          <span class="hud-label" id="chancesLabel">チャンス</span>
+          <span class="hud-value" id="chances">2</span>
+        </div>
+      </div>
+      <div class="overlay" id="overlay">
+        <div class="dialog">
+          <h2 id="overlayTitle">さんすうシューティング</h2>
+          <p id="overlayText">式が書かれた敵機が近づいてきます。答えを入力して発射しよう。</p>
+          <button class="fire-button" id="startButton" type="button">スタート</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="title">
+        <h1>さんすうシューティング</h1>
+        <button class="small-button" id="pauseButton" type="button">一時停止</button>
+      </div>
+      <div class="status" id="status">モードを選んでスタートしてください。</div>
+
+      <section class="panel" aria-labelledby="mode-title">
+        <p class="panel-title" id="mode-title">出題モード</p>
+        <div class="mode-group">
+          <p class="group-title">低学年向け</p>
+          <div class="mode-grid">
+            <button class="mode-button active" data-mode="add10" type="button">たしざん1（10まで）</button>
+            <button class="mode-button" data-mode="addNoCarry" type="button">たしざん2（くり上がりなし）</button>
+            <button class="mode-button" data-mode="addCarry" type="button">たしざん3（くり上がりあり）</button>
+            <button class="mode-button" data-mode="sub10" type="button">ひきざん1（10まで）</button>
+            <button class="mode-button" data-mode="subNoBorrow" type="button">ひきざん2（くり下がりなし）</button>
+            <button class="mode-button" data-mode="subBorrow" type="button">ひきざん3（くり下がりあり）</button>
+          </div>
+        </div>
+        <div class="mode-group">
+          <p class="group-title">中学年向け</p>
+          <div class="mode-grid">
+            <button class="mode-button" data-mode="mul" type="button">かけざん</button>
+            <button class="mode-button" data-mode="div" type="button">わりざん</button>
+            <button class="mode-button" data-mode="nine" type="button">九九チャレンジ</button>
+            <button class="mode-button" data-mode="addSubMix" type="button">たしざん・ひきざんミックス</button>
+          </div>
+        </div>
+        <div class="mode-group">
+          <p class="group-title">上級向け</p>
+          <div class="mode-grid">
+            <button class="mode-button" data-mode="fourMix" type="button">四則計算ミックス</button>
+            <button class="mode-button" data-mode="random" type="button">ランダムモード</button>
+            <button class="mode-button" data-mode="timeAttack" type="button">タイムアタック</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="speed-title">
+        <p class="panel-title" id="speed-title">スピード</p>
+        <div class="speed-grid">
+          <button class="speed-button" data-speed="slow" type="button">ゆっくり</button>
+          <button class="speed-button active" data-speed="normal" type="button">ふつう</button>
+          <button class="speed-button" data-speed="fast" type="button">はやい</button>
+        </div>
+      </section>
+
+      <section class="panel answer-box" aria-labelledby="answer-title">
+        <p class="panel-title" id="answer-title">こたえ</p>
+        <div class="display empty" id="display">0</div>
+        <div class="keys" aria-label="電卓">
+          <button class="key" data-key="7" type="button">7</button>
+          <button class="key" data-key="8" type="button">8</button>
+          <button class="key" data-key="9" type="button">9</button>
+          <button class="key" data-key="4" type="button">4</button>
+          <button class="key" data-key="5" type="button">5</button>
+          <button class="key" data-key="6" type="button">6</button>
+          <button class="key" data-key="1" type="button">1</button>
+          <button class="key" data-key="2" type="button">2</button>
+          <button class="key" data-key="3" type="button">3</button>
+          <button class="key utility" data-key="clear" type="button">C</button>
+          <button class="key" data-key="0" type="button">0</button>
+          <button class="key utility" data-key="back" type="button">⌫</button>
+        </div>
+        <button class="fire-button" id="fireButton" type="button">発射</button>
+      </section>
+
+      <section class="panel">
+        <p class="panel-title">作戦ログ</p>
+        <div class="message" id="message">正解なら敵機が爆発。2回まちがえるとロケットに命中します。</div>
+      </section>
+
+      <div class="actions">
+        <button class="small-button" id="restartButton" type="button">やりなおし</button>
+        <button class="small-button" id="soundButton" type="button">音 ON</button>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const streakEl = document.getElementById("streak");
+    const chancesLabelEl = document.getElementById("chancesLabel");
+    const chancesEl = document.getElementById("chances");
+    const displayEl = document.getElementById("display");
+    const statusEl = document.getElementById("status");
+    const messageEl = document.getElementById("message");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const startButton = document.getElementById("startButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const restartButton = document.getElementById("restartButton");
+    const soundButton = document.getElementById("soundButton");
+    const fireButton = document.getElementById("fireButton");
+
+    const state = {
+      mode: "add10",
+      speed: "normal",
+      input: "",
+      score: 0,
+      streak: 0,
+      enemy: null,
+      missiles: [],
+      particles: [],
+      stars: [],
+      running: false,
+      paused: false,
+      gameOver: false,
+      lastTime: 0,
+      sound: true,
+      spawnDelay: 0,
+      shake: 0,
+      timeLeft: null
+    };
+
+    const speedSettings = {
+      slow: { label: "ゆっくり", multiplier: 0.72 },
+      normal: { label: "ふつう", multiplier: 1 },
+      fast: { label: "はやい", multiplier: 1.32 }
+    };
+
+    const audio = {
+      context: null,
+      tone(freq, duration, type = "sine", gain = 0.05) {
+        if (!state.sound) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        if (!this.context) this.context = new AudioContext();
+        const osc = this.context.createOscillator();
+        const amp = this.context.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        amp.gain.value = gain;
+        osc.connect(amp);
+        amp.connect(this.context.destination);
+        osc.start();
+        amp.gain.exponentialRampToValueAtTime(0.0001, this.context.currentTime + duration);
+        osc.stop(this.context.currentTime + duration);
+      }
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const scale = window.devicePixelRatio || 1;
+      canvas.width = Math.max(640, Math.floor(rect.width * scale));
+      canvas.height = Math.max(420, Math.floor(rect.height * scale));
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      seedStars();
+    }
+
+    function view() {
+      return {
+        width: canvas.width / (window.devicePixelRatio || 1),
+        height: canvas.height / (window.devicePixelRatio || 1)
+      };
+    }
+
+    function seedStars() {
+      const { width, height } = view();
+      state.stars = Array.from({ length: Math.floor(width * height / 8500) }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.8 + 0.4,
+        speed: Math.random() * 18 + 10,
+        alpha: Math.random() * 0.55 + 0.28
+      }));
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function hasCarry(a, b) {
+      return a % 10 + b % 10 >= 10;
+    }
+
+    function hasBorrow(a, b) {
+      return a % 10 < b % 10;
+    }
+
+    function pickFrom(modes) {
+      return modes[randomInt(0, modes.length - 1)];
+    }
+
+    function makeProblem() {
+      let mode = state.mode;
+      if (mode === "random") {
+        mode = pickFrom(["add10", "addNoCarry", "addCarry", "sub10", "subNoBorrow", "subBorrow", "mul", "div", "nine"]);
+      }
+      if (mode === "addSubMix") {
+        mode = pickFrom(["addNoCarry", "addCarry", "subNoBorrow", "subBorrow"]);
+      }
+      if (mode === "fourMix" || mode === "timeAttack") {
+        mode = pickFrom(["addNoCarry", "addCarry", "subNoBorrow", "subBorrow", "mul", "div"]);
+      }
+      let a = 0;
+      let b = 0;
+      let answer = 0;
+      let text = "";
+
+      if (mode === "add10") {
+        do {
+          a = randomInt(0, 10);
+          b = randomInt(0, 10);
+        } while (a + b > 10);
+        answer = a + b;
+        text = `${a} + ${b}`;
+      }
+
+      if (mode === "addNoCarry") {
+        do {
+          a = randomInt(10, 89);
+          b = randomInt(1, 9);
+        } while (hasCarry(a, b) || a + b > 99);
+        answer = a + b;
+        text = `${a} + ${b}`;
+      }
+
+      if (mode === "addCarry") {
+        do {
+          a = randomInt(10, 89);
+          b = randomInt(2, 9);
+        } while (!hasCarry(a, b) || a + b > 99);
+        answer = a + b;
+        text = `${a} + ${b}`;
+      }
+
+      if (mode === "sub10") {
+        a = randomInt(0, 10);
+        b = randomInt(0, a);
+        answer = a - b;
+        text = `${a} - ${b}`;
+      }
+
+      if (mode === "subNoBorrow") {
+        do {
+          a = randomInt(10, 99);
+          b = randomInt(1, Math.min(49, a));
+        } while (hasBorrow(a, b));
+        answer = a - b;
+        text = `${a} - ${b}`;
+      }
+
+      if (mode === "subBorrow") {
+        do {
+          a = randomInt(20, 99);
+          b = randomInt(1, Math.min(49, a - 1));
+        } while (!hasBorrow(a, b));
+        answer = a - b;
+        text = `${a} - ${b}`;
+      }
+
+      if (mode === "mul") {
+        a = randomInt(2, 9);
+        b = randomInt(2, 9);
+        answer = a * b;
+        text = `${a} × ${b}`;
+      }
+
+      if (mode === "nine") {
+        a = 9;
+        b = randomInt(1, 9);
+        if (Math.random() > 0.5) [a, b] = [b, a];
+        answer = a * b;
+        text = `${a} × ${b}`;
+      }
+
+      if (mode === "div") {
+        b = randomInt(2, 9);
+        answer = randomInt(2, 9);
+        a = b * answer;
+        text = `${a} ÷ ${b}`;
+      }
+
+      return { text, answer, mode };
+    }
+
+    function spawnEnemy() {
+      const { width, height } = view();
+      const problem = makeProblem();
+      const speedBase = 34 + Math.min(42, state.score * 1.9);
+      const speed = speedBase * speedSettings[state.speed].multiplier;
+      state.enemy = {
+        ...problem,
+        x: width * (0.24 + Math.random() * 0.52),
+        y: -80,
+        targetY: height - 138,
+        size: 108,
+        speed,
+        wrong: 0,
+        exploding: false,
+        diving: false,
+        tilt: Math.random() > 0.5 ? 1 : -1
+      };
+      state.spawnDelay = 0;
+      updateHud();
+    }
+
+    function resetGame() {
+      state.input = "";
+      state.score = 0;
+      state.streak = 0;
+      state.enemy = null;
+      state.missiles = [];
+      state.particles = [];
+      state.running = true;
+      state.paused = false;
+      state.gameOver = false;
+      state.spawnDelay = 0;
+      state.shake = 0;
+      state.timeLeft = state.mode === "timeAttack" ? 60 : null;
+      overlay.hidden = true;
+      pauseButton.textContent = "一時停止";
+      statusEl.textContent = "敵機の式を見て、答えを入力してください。";
+      messageEl.innerHTML = "発射準備OK。";
+      updateDisplay();
+      updateHud();
+      spawnEnemy();
+      state.lastTime = performance.now();
+    }
+
+    function updateHud() {
+      scoreEl.textContent = state.score;
+      streakEl.textContent = state.streak;
+      const chances = state.enemy ? Math.max(0, 2 - state.enemy.wrong) : 2;
+      chancesLabelEl.textContent = state.timeLeft === null ? "チャンス" : "のこり";
+      chancesEl.textContent = state.timeLeft === null ? chances : Math.ceil(state.timeLeft);
+    }
+
+    function updateDisplay() {
+      displayEl.textContent = state.input || "0";
+      displayEl.classList.toggle("empty", state.input === "");
+    }
+
+    function addDigit(digit) {
+      if (state.gameOver) return;
+      if (state.input.length >= 3) return;
+      if (state.input === "0") state.input = "";
+      state.input += digit;
+      updateDisplay();
+    }
+
+    function clearInput() {
+      state.input = "";
+      updateDisplay();
+    }
+
+    function backspace() {
+      state.input = state.input.slice(0, -1);
+      updateDisplay();
+    }
+
+    function fire() {
+      if (!state.running || state.paused || state.gameOver || !state.enemy || state.enemy.exploding || state.enemy.diving) return;
+      if (state.input === "") {
+        messageEl.innerHTML = "答えを入力してから発射しよう。";
+        return;
+      }
+
+      const { width, height } = view();
+      const answer = Number(state.input);
+      state.missiles.push({
+        x: width / 2,
+        y: height - 88,
+        tx: state.enemy.x,
+        ty: state.enemy.y,
+        progress: 0,
+        correct: answer === state.enemy.answer
+      });
+      audio.tone(620, 0.08, "square", 0.035);
+      clearInput();
+    }
+
+    function resolveShot(correct) {
+      if (!state.enemy) return;
+      if (correct) {
+        state.score += 10 + state.streak * 2;
+        state.streak += 1;
+        explodeEnemy(false);
+        statusEl.textContent = "正解。次の敵機が来ます。";
+        messageEl.innerHTML = `<strong>命中!</strong> 答えは ${state.enemy.answer}。`;
+        audio.tone(320, 0.09, "triangle", 0.06);
+        setTimeout(() => audio.tone(520, 0.12, "triangle", 0.04), 70);
+      } else {
+        state.enemy.wrong += 1;
+        state.streak = 0;
+        state.shake = 10;
+        audio.tone(150, 0.16, "sawtooth", 0.04);
+        if (state.enemy.wrong >= 2) {
+          messageEl.innerHTML = `<strong>2回ミス!</strong> 正解は ${state.enemy.answer}。`;
+          statusEl.textContent = "敵機がロケットへ突っ込んできます。";
+          state.enemy.diving = true;
+          state.enemy.speed = 430;
+        } else {
+          messageEl.innerHTML = "惜しい。もう一回だけ発射できます。";
+          statusEl.textContent = "チャンスはあと1回。落ち着いて答えよう。";
+        }
+        updateHud();
+      }
+    }
+
+    function explodeEnemy(isRocketHit) {
+      if (!state.enemy) return;
+      const color = isRocketHit ? "#ff6666" : "#ffcf5a";
+      for (let i = 0; i < 42; i++) {
+        state.particles.push({
+          x: state.enemy.x,
+          y: state.enemy.y,
+          vx: Math.cos(i) * randomInt(40, 190) + randomInt(-40, 40),
+          vy: Math.sin(i * 1.7) * randomInt(40, 190),
+          life: Math.random() * 0.45 + 0.35,
+          age: 0,
+          color
+        });
+      }
+      state.enemy.exploding = true;
+      state.spawnDelay = isRocketHit ? 0 : 0.75;
+      updateHud();
+    }
+
+    function endGame(reason) {
+      state.gameOver = true;
+      state.running = false;
+      overlayTitle.textContent = "ゲームオーバー";
+      overlayText.textContent = `${reason} スコアは ${state.score} 点です。`;
+      startButton.textContent = "もう一度";
+      overlay.hidden = false;
+      pauseButton.textContent = "一時停止";
+      audio.tone(90, 0.42, "sawtooth", 0.05);
+    }
+
+    function update(delta) {
+      const { width, height } = view();
+      if (state.timeLeft !== null) {
+        state.timeLeft = Math.max(0, state.timeLeft - delta);
+        if (state.timeLeft <= 0) {
+          endGame("タイムアップです。");
+          return;
+        }
+        updateHud();
+      }
+
+      state.stars.forEach((star) => {
+        star.y += star.speed * delta;
+        if (star.y > height) {
+          star.y = -5;
+          star.x = Math.random() * width;
+        }
+      });
+
+      state.particles = state.particles.filter((p) => {
+        p.age += delta;
+        p.x += p.vx * delta;
+        p.y += p.vy * delta;
+        p.vy += 160 * delta;
+        return p.age < p.life;
+      });
+
+      state.missiles = state.missiles.filter((m) => {
+        m.progress += delta * 4.1;
+        if (m.progress >= 1) {
+          resolveShot(m.correct);
+          return false;
+        }
+        return true;
+      });
+
+      if (state.enemy && !state.enemy.exploding) {
+        const enemy = state.enemy;
+        if (enemy.diving) {
+          const rocketX = width / 2;
+          const rocketY = height - 74;
+          const dx = rocketX - enemy.x;
+          const dy = rocketY - enemy.y;
+          const dist = Math.max(1, Math.hypot(dx, dy));
+          enemy.x += (dx / dist) * enemy.speed * delta;
+          enemy.y += (dy / dist) * enemy.speed * delta;
+          if (dist < 26) {
+            explodeEnemy(true);
+            state.shake = 28;
+            endGame("敵機がロケットに当たりました。");
+          }
+        } else {
+          enemy.y += enemy.speed * delta;
+          enemy.x += Math.sin(performance.now() / 450) * enemy.tilt * 22 * delta;
+          if (enemy.y >= enemy.targetY) {
+            endGame("敵機を止められませんでした。");
+          }
+        }
+      }
+
+      if (state.enemy && state.enemy.exploding && state.particles.length < 12) {
+        state.enemy = null;
+      }
+
+      if (!state.enemy && state.running && !state.gameOver) {
+        state.spawnDelay -= delta;
+        if (state.spawnDelay <= 0) spawnEnemy();
+      }
+
+      if (state.shake > 0) state.shake = Math.max(0, state.shake - delta * 35);
+    }
+
+    function drawShip(x, y, size, enemy) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = enemy ? "#d85164" : "#e9eef6";
+      ctx.strokeStyle = "rgba(255,255,255,.72)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (enemy) {
+        ctx.moveTo(0, size * 0.42);
+        ctx.lineTo(-size * 0.52, -size * 0.05);
+        ctx.lineTo(-size * 0.16, -size * 0.24);
+        ctx.lineTo(0, -size * 0.42);
+        ctx.lineTo(size * 0.16, -size * 0.24);
+        ctx.lineTo(size * 0.52, -size * 0.05);
+      } else {
+        ctx.moveTo(0, -size * 0.55);
+        ctx.lineTo(-size * 0.22, size * 0.28);
+        ctx.lineTo(-size * 0.46, size * 0.5);
+        ctx.lineTo(-size * 0.18, size * 0.42);
+        ctx.lineTo(0, size * 0.6);
+        ctx.lineTo(size * 0.18, size * 0.42);
+        ctx.lineTo(size * 0.46, size * 0.5);
+        ctx.lineTo(size * 0.22, size * 0.28);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = enemy ? "#7a2635" : "#20b7a8";
+      ctx.beginPath();
+      ctx.ellipse(0, enemy ? -size * 0.02 : -size * 0.12, size * 0.17, size * 0.11, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (!enemy) {
+        ctx.fillStyle = "#ffcf5a";
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.12, size * 0.48);
+        ctx.lineTo(0, size * 0.8 + Math.sin(performance.now() / 80) * 6);
+        ctx.lineTo(size * 0.12, size * 0.48);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function draw() {
+      const { width, height } = view();
+      const shakeX = state.shake ? (Math.random() - 0.5) * state.shake : 0;
+      const shakeY = state.shake ? (Math.random() - 0.5) * state.shake : 0;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, "#11182a");
+      gradient.addColorStop(1, "#27364b");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      state.stars.forEach((star) => {
+        ctx.globalAlpha = star.alpha;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      ctx.strokeStyle = "rgba(32, 183, 168, .18)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.08, height - 38);
+      ctx.lineTo(width * 0.92, height - 38);
+      ctx.stroke();
+
+      drawShip(width / 2, height - 72, 76, false);
+
+      if (state.enemy && !state.enemy.exploding) {
+        const enemy = state.enemy;
+        drawShip(enemy.x, enemy.y, enemy.size, true);
+        ctx.fillStyle = "rgba(11, 14, 20, .82)";
+        ctx.strokeStyle = enemy.wrong ? "#ff6666" : "rgba(255,255,255,.5)";
+        ctx.lineWidth = 2;
+        roundRect(enemy.x - 62, enemy.y - 18, 124, 42, 7);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#f8fbff";
+        ctx.font = "800 24px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(enemy.text, enemy.x, enemy.y + 3);
+      }
+
+      state.missiles.forEach((m) => {
+        const t = easeOutCubic(m.progress);
+        const x = m.x + (m.tx - m.x) * t;
+        const y = m.y + (m.ty - m.y) * t;
+        ctx.strokeStyle = m.correct ? "#ffcf5a" : "#ff6666";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x, y + 18);
+        ctx.lineTo(x, y - 16);
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(x, y - 18, 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      state.particles.forEach((p) => {
+        const alpha = 1 - p.age / p.life;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4 + alpha * 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - Math.min(1, t), 3);
+    }
+
+    function loop(time) {
+      const delta = Math.min(0.033, (time - state.lastTime) / 1000 || 0);
+      state.lastTime = time;
+      if (state.running && !state.paused && !state.gameOver) update(delta);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    document.querySelectorAll(".mode-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".mode-button").forEach((b) => b.classList.remove("active"));
+        button.classList.add("active");
+        state.mode = button.dataset.mode;
+        if (state.mode === "timeAttack" && state.running && state.timeLeft === null) state.timeLeft = 60;
+        if (state.mode !== "timeAttack" && state.timeLeft !== null) state.timeLeft = null;
+        updateHud();
+        statusEl.textContent = "モードを変更しました。次の敵機から反映されます。";
+      });
+    });
+
+    document.querySelectorAll("[data-key]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.key;
+        if (key === "clear") clearInput();
+        else if (key === "back") backspace();
+        else addDigit(key);
+      });
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (/^\d$/.test(event.key)) addDigit(event.key);
+      if (event.key === "Backspace") backspace();
+      if (event.key === "Delete" || event.key.toLowerCase() === "c") clearInput();
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        fire();
+      }
+    });
+
+    fireButton.addEventListener("click", fire);
+    startButton.addEventListener("click", resetGame);
+    restartButton.addEventListener("click", resetGame);
+    pauseButton.addEventListener("click", () => {
+      if (!state.running || state.gameOver) return;
+        state.paused = !state.paused;
+        pauseButton.textContent = state.paused ? "再開" : "一時停止";
+        statusEl.textContent = state.paused ? "一時停止中です。" : "再開しました。";
+      });
+
+    document.querySelectorAll(".speed-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".speed-button").forEach((b) => b.classList.remove("active"));
+        button.classList.add("active");
+        state.speed = button.dataset.speed;
+        statusEl.textContent = `スピードを${speedSettings[state.speed].label}にしました。次の敵機から反映されます。`;
+      });
+    });
+
+    soundButton.addEventListener("click", () => {
+      state.sound = !state.sound;
+      soundButton.textContent = state.sound ? "音 ON" : "音 OFF";
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
